@@ -1,0 +1,230 @@
+-- ==========================================================
+-- SMART COLLEGE ATTENDANCE MANAGEMENT SYSTEM (MySQL 8+)
+-- ==========================================================
+
+CREATE DATABASE IF NOT EXISTS smart_college_attendance_system;
+USE smart_college_attendance_system;
+
+SET FOREIGN_KEY_CHECKS = 0;
+
+DROP TABLE IF EXISTS D_BAR;
+DROP TABLE IF EXISTS Attendance_Summary;
+DROP TABLE IF EXISTS Attendance;
+DROP TABLE IF EXISTS Classes;
+DROP TABLE IF EXISTS Student_Enrollment;
+DROP TABLE IF EXISTS Academic_Year;
+DROP TABLE IF EXISTS Subjects;
+DROP TABLE IF EXISTS Students;
+DROP TABLE IF EXISTS Faculty;
+DROP TABLE IF EXISTS Departments;
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- ==========================================================
+-- 1. TABLES
+-- ==========================================================
+
+CREATE TABLE Departments (
+    department_id INT PRIMARY KEY,
+    department_name VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Faculty (
+    faculty_id INT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    department_id INT NOT NULL,
+    CONSTRAINT fk_faculty_department
+        FOREIGN KEY (department_id) REFERENCES Departments(department_id)
+        ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+CREATE TABLE Students (
+    student_id INT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    year INT NOT NULL,
+    section VARCHAR(5) NOT NULL,
+    department_id INT NOT NULL,
+    mentor_id INT NOT NULL,
+    CONSTRAINT fk_students_department
+        FOREIGN KEY (department_id) REFERENCES Departments(department_id)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_students_mentor
+        FOREIGN KEY (mentor_id) REFERENCES Faculty(faculty_id)
+        ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+CREATE TABLE Subjects (
+    subject_id INT PRIMARY KEY,
+    subject_name VARCHAR(100) NOT NULL,
+    faculty_id INT NOT NULL,
+    department_id INT NOT NULL,
+    CONSTRAINT fk_subjects_faculty
+        FOREIGN KEY (faculty_id) REFERENCES Faculty(faculty_id)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_subjects_department
+        FOREIGN KEY (department_id) REFERENCES Departments(department_id)
+        ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+CREATE TABLE Academic_Year (
+    year_id INT PRIMARY KEY,
+    year_name VARCHAR(20) NOT NULL
+);
+
+CREATE TABLE Student_Enrollment (
+    enroll_id INT PRIMARY KEY,
+    student_id INT NOT NULL,
+    subject_id INT NOT NULL,
+    year_id INT NOT NULL,
+    CONSTRAINT fk_enrollment_student
+        FOREIGN KEY (student_id) REFERENCES Students(student_id)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_enrollment_subject
+        FOREIGN KEY (subject_id) REFERENCES Subjects(subject_id)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_enrollment_year
+        FOREIGN KEY (year_id) REFERENCES Academic_Year(year_id)
+        ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+CREATE TABLE Classes (
+    class_id INT PRIMARY KEY,
+    subject_id INT NOT NULL,
+    class_date DATE NOT NULL,
+    time_slot VARCHAR(20) NOT NULL,
+    year_id INT NOT NULL,
+    CONSTRAINT fk_classes_subject
+        FOREIGN KEY (subject_id) REFERENCES Subjects(subject_id)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_classes_year
+        FOREIGN KEY (year_id) REFERENCES Academic_Year(year_id)
+        ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+CREATE TABLE Attendance (
+    attendance_id INT PRIMARY KEY,
+    enroll_id INT NOT NULL,
+    class_id INT NOT NULL,
+    status VARCHAR(10) NOT NULL,
+    CONSTRAINT chk_attendance_status CHECK (status IN ('Present', 'Absent')),
+    CONSTRAINT uq_attendance_enroll_class UNIQUE (enroll_id, class_id),
+    CONSTRAINT fk_attendance_enroll
+        FOREIGN KEY (enroll_id) REFERENCES Student_Enrollment(enroll_id)
+        ON UPDATE CASCADE ON DELETE RESTRICT,
+    CONSTRAINT fk_attendance_class
+        FOREIGN KEY (class_id) REFERENCES Classes(class_id)
+        ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+CREATE TABLE Attendance_Summary (
+    summary_id INT PRIMARY KEY,
+    enroll_id INT NOT NULL UNIQUE,
+    total_classes INT NOT NULL DEFAULT 0,
+    classes_present INT NOT NULL DEFAULT 0,
+    percentage DECIMAL(5,2) NOT NULL DEFAULT 0.00,
+    CONSTRAINT chk_attendance_percentage CHECK (percentage >= 0 AND percentage <= 100),
+    CONSTRAINT fk_summary_enroll
+        FOREIGN KEY (enroll_id) REFERENCES Student_Enrollment(enroll_id)
+        ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+CREATE TABLE D_BAR (
+    dbar_id INT PRIMARY KEY,
+    student_id INT NOT NULL,
+    percentage DECIMAL(5,2) NOT NULL,
+    alert_message VARCHAR(200) NOT NULL,
+    alert_date DATE NOT NULL,
+    CONSTRAINT chk_dbar_percentage CHECK (percentage >= 0 AND percentage <= 100),
+    CONSTRAINT fk_dbar_student
+        FOREIGN KEY (student_id) REFERENCES Students(student_id)
+        ON UPDATE CASCADE ON DELETE RESTRICT
+);
+
+-- ==========================================================
+-- 2. SEED DATA
+-- ==========================================================
+
+INSERT INTO Departments (department_id, department_name) VALUES
+(1,'Computer Science'),
+(2,'Electronics'),
+(3,'Mechanical'),
+(4,'Civil'),
+(5,'Information Technology');
+
+INSERT INTO Faculty (faculty_id, name, department_id) VALUES
+(201,'Dr Mehta',1),
+(202,'Prof Rao',2),
+(203,'Dr Gupta',1),
+(204,'Prof Sharma',3),
+(205,'Dr Iyer',4),
+(206,'Prof Singh',5),
+(207,'Dr Kapoor',1),
+(208,'Prof Jain',2);
+
+INSERT INTO Students (student_id, name, year, section, department_id, mentor_id) VALUES
+(101,'Amit Sharma',2,'A',1,201),
+(102,'Priya Singh',2,'A',1,201),
+(103,'Rahul Verma',1,'B',2,202),
+(104,'Neha Gupta',3,'A',1,203),
+(105,'Arjun Patel',2,'B',3,204),
+(106,'Sneha Joshi',1,'A',4,205),
+(107,'Rohit Kumar',3,'B',5,206),
+(108,'Pooja Nair',2,'A',1,203),
+(109,'Vikram Shah',1,'C',2,202),
+(110,'Anjali Mehta',3,'A',5,206);
+
+INSERT INTO Subjects (subject_id, subject_name, faculty_id, department_id) VALUES
+(301,'Database Management System',203,1),
+(302,'Data Structures',201,1),
+(303,'Digital Electronics',202,2),
+(304,'Thermodynamics',204,3),
+(305,'Structural Engineering',205,4),
+(306,'Computer Networks',206,5);
+
+INSERT INTO Academic_Year (year_id, year_name) VALUES
+(1,'2024-2025'),
+(2,'2025-2026');
+
+INSERT INTO Student_Enrollment (enroll_id, student_id, subject_id, year_id) VALUES
+(401,101,301,2),
+(402,102,301,2),
+(403,103,303,2),
+(404,104,302,2),
+(405,105,304,2),
+(406,106,305,2),
+(407,107,306,2),
+(408,108,301,2),
+(409,109,303,2),
+(410,110,306,2);
+
+INSERT INTO Classes (class_id, subject_id, class_date, time_slot, year_id) VALUES
+(501,301,'2026-02-01','10:00',2),
+(502,301,'2026-02-02','10:00',2),
+(503,302,'2026-02-01','11:00',2),
+(504,303,'2026-02-01','12:00',2),
+(505,304,'2026-02-01','01:00',2),
+(506,305,'2026-02-02','02:00',2),
+(507,306,'2026-02-02','03:00',2);
+
+INSERT INTO Attendance (attendance_id, enroll_id, class_id, status) VALUES
+(601,401,501,'Present'),
+(602,402,501,'Present'),
+(603,403,504,'Absent'),
+(604,404,503,'Present'),
+(605,405,505,'Present'),
+(606,406,506,'Absent'),
+(607,407,507,'Present'),
+(608,408,501,'Present'),
+(609,409,504,'Absent'),
+(610,410,507,'Present');
+
+INSERT INTO Attendance_Summary (summary_id, enroll_id, total_classes, classes_present, percentage) VALUES
+(701,401,10,8,80.00),
+(702,402,10,9,90.00),
+(703,403,10,6,60.00),
+(704,404,10,8,80.00),
+(705,405,10,7,70.00);
+
+INSERT INTO D_BAR (dbar_id, student_id, percentage, alert_message, alert_date) VALUES
+(801,103,60.00,'Attendance below 80%','2026-02-10'),
+(802,105,70.00,'Attendance below 80%','2026-02-10');
