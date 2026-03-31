@@ -1,78 +1,76 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Students - Smart Attendance</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="script.js" defer></script>
 </head>
 <body onload="loadStudents()">
-    
-    <div id="sidebar" class="sidebar"></div>
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar navigation"></aside>
 
     <main class="main-content">
         <header class="header">
             <h1 class="page-title">Manage Students</h1>
         </header>
 
-        <div class="actions-row">
-            <button class="btn btn-primary" onclick="openModal('addModal')">
-                <i data-lucide="user-plus"></i> Add New Student
+        <section class="actions-row" aria-label="Student actions">
+            <button class="btn btn-primary" type="button" onclick="openModal('addModal')">
+                <i data-lucide="user-plus"></i>
+                Add New Student
             </button>
-        </div>
+        </section>
 
-        <div class="glass-panel table-container animate-fade-in">
+        <section class="glass-panel table-container animate-fade-in" aria-label="Students table">
             <table>
                 <thead>
                     <tr>
                         <th>ID</th>
                         <th>Name</th>
-                        <th>Year & Section</th>
+                        <th>Year &amp; Section</th>
                         <th>Department</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody id="students-body">
-                    <!-- Loaded dynamically -->
-                </tbody>
+                <tbody id="students-body"></tbody>
             </table>
-        </div>
+        </section>
     </main>
 
-    <!-- Modal for Adding Student -->
-    <div class="modal-overlay" id="addModal">
+    <div class="modal-overlay" id="addModal" role="dialog" aria-modal="true" aria-labelledby="add-student-title">
         <div class="glass-panel modal">
             <div class="modal-header">
-                <h3>Add New Student</h3>
-                <button class="close-btn" onclick="closeModal('addModal')">&times;</button>
+                <h3 id="add-student-title">Add New Student</h3>
+                <button class="close-btn" type="button" aria-label="Close" onclick="closeModal('addModal')">&times;</button>
             </div>
+
             <div class="modal-body">
                 <form id="addStudentForm" onsubmit="addStudent(event)">
                     <div class="form-group">
-                        <label>Student Name</label>
+                        <label for="sName">Student Name</label>
                         <input type="text" id="sName" required>
                     </div>
+
                     <div class="form-group">
-                        <label>Year (1-4)</label>
+                        <label for="sYear">Year (1-4)</label>
                         <input type="number" id="sYear" min="1" max="4" required>
                     </div>
+
                     <div class="form-group">
-                        <label>Section</label>
+                        <label for="sSection">Section</label>
                         <input type="text" id="sSection" required>
                     </div>
+
                     <div class="form-group">
-                        <label>Department</label>
-                        <select id="deptSelect" required>
-                            <!-- Departments dynamically loaded -->
-                        </select>
+                        <label for="deptSelect">Department</label>
+                        <select id="deptSelect" required></select>
                     </div>
+
                     <button type="submit" class="btn btn-primary" style="width: 100%;">Add Student</button>
                 </form>
             </div>
         </div>
     </div>
-
-    <script src="script.js"></script>
 </body>
 </html>

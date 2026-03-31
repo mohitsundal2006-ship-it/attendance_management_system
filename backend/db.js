@@ -1,24 +1,28 @@
-const sql = require('mssql/msnodesqlv8');
+const mysql = require('mysql2/promise');
 require('dotenv').config({ quiet: true });
 
-const config = {
-    server: process.env.DB_SERVER,
+const pool = mysql.createPool({
+    host: process.env.DB_HOST || 'localhost',
+    port: Number(process.env.DB_PORT || 3306),
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
     database: process.env.DB_NAME,
-    driver: 'SQL Server',
-    options: {
-        trustedConnection: true, // Enables Windows Authentication
-        trustServerCertificate: true
-    }
-};
+    waitForConnections: true,
+    connectionLimit: Number(process.env.DB_POOL_SIZE || 10),
+    queueLimit: 0
+});
 
-const poolPromise = new sql.ConnectionPool(config)
-    .connect()
-    .then(pool => {
-        console.log('Connected to MSSQL Database successfully!');
-        return pool;
-    })
-    .catch(err => console.log('Database Connection Failed! Bad Config: ', err));
+async function testConnection() {
+    const connection = await pool.getConnection();
+    try {
+        await connection.ping();
+        console.log('Connected to MySQL database successfully.');
+    } finally {
+        connection.release();
+    }
+}
 
 module.exports = {
-    sql, poolPromise
+    pool,
+    testConnection
 };

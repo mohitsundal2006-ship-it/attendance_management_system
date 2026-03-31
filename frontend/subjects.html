@@ -1,19 +1,21 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subjects - Smart Attendance</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="script.js" defer></script>
 </head>
 <body onload="loadSubjects()">
-    <div id="sidebar" class="sidebar"></div>
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar navigation"></aside>
+
     <main class="main-content">
         <header class="header">
             <h1 class="page-title">Manage Subjects</h1>
         </header>
-        <div class="glass-panel table-container animate-fade-in">
+
+        <section class="glass-panel table-container animate-fade-in" aria-label="Subjects table">
             <table>
                 <thead>
                     <tr>
@@ -24,8 +26,7 @@
                 </thead>
                 <tbody id="subjects-body"></tbody>
             </table>
-        </div>
+        </section>
     </main>
-    <script src="script.js"></script>
 </body>
 </html>

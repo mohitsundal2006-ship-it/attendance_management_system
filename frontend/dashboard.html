@@ -1,54 +1,52 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Smart Attendance</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="script.js" defer></script>
 </head>
 <body onload="loadDashboard()">
-    
-    <div id="sidebar" class="sidebar"></div>
+    <aside id="sidebar" class="sidebar" aria-label="Sidebar navigation"></aside>
 
     <main class="main-content">
         <header class="header">
             <h1 class="page-title">Admin Dashboard</h1>
             <div class="user-profile">
-                <span style="color: var(--text-secondary)">Welcome back, Admin</span>
+                <span style="color: var(--text-secondary);">Welcome back, Admin</span>
                 <div class="avatar">A</div>
             </div>
         </header>
 
-        <section class="stats-grid animate-fade-in">
-            <div class="glass-panel stat-card">
+        <section class="stats-grid animate-fade-in" aria-label="Dashboard stats">
+            <article class="glass-panel stat-card">
                 <span class="stat-title">Total Students</span>
                 <span class="stat-value" id="stat-students">-</span>
-            </div>
-            <div class="glass-panel stat-card">
+            </article>
+            <article class="glass-panel stat-card">
                 <span class="stat-title">Total Subjects</span>
                 <span class="stat-value" id="stat-stats">-</span>
-            </div>
-            <div class="glass-panel stat-card">
+            </article>
+            <article class="glass-panel stat-card">
                 <span class="stat-title">Avg Attendance</span>
                 <span class="stat-value" id="stat-attendance">-</span>
-            </div>
-            <div class="glass-panel stat-card">
+            </article>
+            <article class="glass-panel stat-card">
                 <span class="stat-title">Defaulters Alert</span>
                 <span class="stat-value" id="stat-defaulters">-</span>
-            </div>
+            </article>
         </section>
 
-        <div class="glass-panel animate-fade-in" style="padding: 2rem; border-left: 4px solid var(--accent); margin-top: 2rem;">
+        <section class="glass-panel animate-fade-in" style="padding: 2rem; border-left: 4px solid var(--accent); margin-top: 2rem;">
             <h2>Case Study Requirements Complete</h2>
             <p style="color: var(--text-secondary); margin-top: 1rem; line-height: 1.6;">
-                This system accurately manages 10 core tables: <strong>Departments, Faculty, Students, Subjects, Academic Year, Student Enrollment, Classes, Attendance, Attendance Summary, and D_BAR</strong>. <br>
+                This system accurately manages 10 core tables:
+                <strong>Departments, Faculty, Students, Subjects, Academic Year, Student Enrollment, Classes, Attendance, Attendance Summary, and D_BAR</strong>.
+                <br>
                 It is fully integrated with MSSQL Server using Node.js/Express.
             </p>
-        </div>
-
+        </section>
     </main>
-
-    <script src="script.js"></script>
 </body>
 </html>

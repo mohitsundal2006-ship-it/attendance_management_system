@@ -1,13 +1,24 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>frontend</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Smart Attendance frontend application">
+  <link rel="icon" type="image/svg+xml" href="public/favicon.svg">
+  <link rel="stylesheet" href="style.css">
+  <title>Smart Attendance</title>
+</head>
+<body>
+  <main class="login-container">
+    <section class="glass-panel login-card" aria-labelledby="welcome-title">
+      <h1 id="welcome-title" class="login-logo">Smart <span>Attendance</span></h1>
+      <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
+        Attendance Management System
+      </p>
+      <a class="btn btn-primary" href="dashboard.html" style="width: 100%; justify-content: center; text-decoration: none;">
+        Open Dashboard
+      </a>
+    </section>
+  </main>
+</body>
 </html>
