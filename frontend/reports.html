@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reports - Smart Attendance</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body onload="loadReports()">
+    <div id="sidebar" class="sidebar"></div>
+    <main class="main-content">
+        <header class="header">
+            <h1 class="page-title">Attendance Summary</h1>
+        </header>
+        <div class="glass-panel table-container animate-fade-in">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Student Name</th>
+                        <th>Subject</th>
+                        <th>Total Classes</th>
+                        <th>Present</th>
+                        <th>Percentage</th>
+                    </tr>
+                </thead>
+                <tbody id="reports-body"></tbody>
+            </table>
+        </div>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>

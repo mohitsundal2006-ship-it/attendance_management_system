@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mark Attendance - Smart Attendance</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body onload="loadAttendancePage()">
+    <div id="sidebar" class="sidebar"></div>
+    <main class="main-content">
+        <header class="header">
+            <h1 class="page-title">Mark Attendance</h1>
+        </header>
+
+        <div class="glass-panel" style="padding: 1.5rem; margin-bottom: 2rem;">
+            <div class="form-group" style="margin: 0; max-width: 400px;">
+                <label>Select Scheduled Class</label>
+                <select id="classSelect"></select>
+            </div>
+        </div>
+
+        <form id="attendanceForm" onsubmit="markAttendance(event)">
+            <div class="glass-panel table-container animate-fade-in">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Status (<span style="color:var(--success)">P</span> / <span style="color:var(--danger)">A</span>)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="attendance-grid">
+                        <!-- Loaded dynamically based on class -->
+                    </tbody>
+                </table>
+            </div>
+            <button type="submit" id="submitBtn" class="btn btn-primary" style="margin-top: 2rem; display: none;">Save Attendance Records</button>
+        </form>
+    </main>
+    <script src="script.js"></script>
+</body>
+</html>

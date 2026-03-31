@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Students - Smart Attendance</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body onload="loadStudents()">
+    
+    <div id="sidebar" class="sidebar"></div>
+
+    <main class="main-content">
+        <header class="header">
+            <h1 class="page-title">Manage Students</h1>
+        </header>
+
+        <div class="actions-row">
+            <button class="btn btn-primary" onclick="openModal('addModal')">
+                <i data-lucide="user-plus"></i> Add New Student
+            </button>
+        </div>
+
+        <div class="glass-panel table-container animate-fade-in">
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Year & Section</th>
+                        <th>Department</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="students-body">
+                    <!-- Loaded dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <!-- Modal for Adding Student -->
+    <div class="modal-overlay" id="addModal">
+        <div class="glass-panel modal">
+            <div class="modal-header">
+                <h3>Add New Student</h3>
+                <button class="close-btn" onclick="closeModal('addModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="addStudentForm" onsubmit="addStudent(event)">
+                    <div class="form-group">
+                        <label>Student Name</label>
+                        <input type="text" id="sName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Year (1-4)</label>
+                        <input type="number" id="sYear" min="1" max="4" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Section</label>
+                        <input type="text" id="sSection" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Department</label>
+                        <select id="deptSelect" required>
+                            <!-- Departments dynamically loaded -->
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Add Student</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
