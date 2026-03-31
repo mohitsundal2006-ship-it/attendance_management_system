@@ -5,13 +5,18 @@ async function fetchAPI(endpoint, options = {}) {
     try {
         const res = await fetch(`${API_BASE}${endpoint}`, {
             headers: { 'Content-Type': 'application/json' },
+            cache: 'no-store',
             ...options
         });
-        if (!res.ok) throw new Error(await res.text());
+        if (!res.ok) {
+            const result = await res.json().catch(() => ({}));
+            throw new Error(result.error || result.message || await res.text() || 'Failed response');
+        }
         return await res.json();
     } catch (err) {
         console.error('API Error:', err);
-        return null; // Silent catch, handle locally if needed
+        alert('API Error: ' + err.message);
+        return null; 
     }
 }
 
@@ -19,30 +24,25 @@ async function fetchAPI(endpoint, options = {}) {
 function renderSidebar() {
     const sidebar = document.getElementById('sidebar');
     if (sidebar) {
-        // Keeping the exact styling requested from the user's snippet
         sidebar.innerHTML = `
             <div style="padding: 2rem; font-size: 1.5rem; font-weight: bold; color: var(--accent, #3b82f6); display: flex; align-items: center; gap: 10px;">
-                <i data-lucide="graduation-cap"></i> Admin
+                Admin
             </div>
             <nav style="display: flex; flex-direction: column; gap: 5px; padding: 0 1rem;">
-                <a href="dashboard.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px;"><i data-lucide="layout-dashboard"></i> Dashboard</a>
-                <a href="students.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px;"><i data-lucide="users"></i> Students</a>
-                <a href="faculty.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px;"><i data-lucide="user-check"></i> Faculty</a>
-                <a href="subjects.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px;"><i data-lucide="book-open"></i> Subjects</a>
-                <a href="attendance.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px;"><i data-lucide="calendar-check"></i> Mark Attendance</a>
-                <a href="reports.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px;"><i data-lucide="file-text"></i> Reports</a>
-                <a href="defaulters.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px;"><i data-lucide="alert-triangle"></i> Defaulters</a>
+                <a href="dashboard.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px;">Dashboard</a>
+                <a href="students.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px;">Students</a>
+                <a href="faculty.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px;">Faculty</a>
+                <a href="subjects.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px;">Subjects</a>
+                <a href="attendance.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px;">Mark Attendance</a>
+                <a href="reports.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px;">Reports</a>
+                <a href="defaulters.html" style="text-decoration: none; color: inherit; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 8px;">Defaulters</a>
             </nav>
             <div style="margin-top: auto; padding: 1rem;">
                 <a href="index.html" class="btn btn-primary" style="display: flex; justify-content: center; align-items: center; gap: 10px; text-decoration: none; width: 100%; box-sizing: border-box;">
-                    <i data-lucide="log-out"></i> Logout
+                    Logout
                 </a>
             </div>
         `;
-    }
-
-    if (typeof lucide !== 'undefined') {
-        lucide.createIcons();
     }
 }
 
@@ -76,12 +76,11 @@ async function loadStudents() {
                     <td>${s.department_name || ''}</td>
                     <td>
                         <button class="btn btn-sm" style="background-color: var(--danger, #ef4444); color: white;" onclick="deleteStudent(${s.student_id})">
-                            <i data-lucide="trash-2"></i> Delete
+                            Delete
                         </button>
                     </td>
                 </tr>
             `).join('');
-            if (typeof lucide !== 'undefined') lucide.createIcons(); // Re-render icon
         }
     }
     
@@ -106,8 +105,6 @@ async function addStudent(e) {
         closeModal('addModal');
         document.getElementById('addStudentForm').reset();
         loadStudents(); 
-    } else {
-        alert("Failed to add student. Check console.");
     }
 }
 
