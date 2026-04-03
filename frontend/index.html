@@ -10,15 +10,86 @@
 </head>
 <body>
   <main class="login-container">
-    <section class="glass-panel login-card" aria-labelledby="welcome-title">
+    <section class="glass-panel login-card" aria-labelledby="welcome-title" style="width: 350px;">
       <h1 id="welcome-title" class="login-logo">Smart <span>Attendance</span></h1>
       <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">
-        Attendance Management System
+        Select your role to access Dashboard
       </p>
-      <a class="btn btn-primary" href="dashboard.html" style="width: 100%; justify-content: center; text-decoration: none;">
-        Open Dashboard
-      </a>
+
+      <div class="form-group" style="text-align: left;">
+        <label for="roleSelect" style="color: var(--text-primary);">Log in As</label>
+        <select id="roleSelect" required style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--panel-border);">
+            <option value="student">Student</option>
+            <option value="faculty">Faculty</option>
+        </select>
+      </div>
+
+      <div class="form-group" style="text-align: left; margin-top: 1rem;">
+        <label for="userIdInput" style="color: var(--text-primary);">User ID</label>
+        <input type="text" id="userIdInput" required placeholder="Enter your ID" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--panel-border); margin-top: 5px;">
+      </div>
+
+      <div class="form-group" style="text-align: left; margin-top: 1rem;">
+        <label for="passwordInput" style="color: var(--text-primary);">Password</label>
+        <input type="password" id="passwordInput" required placeholder="Enter your password" style="width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--panel-border); margin-top: 5px;">
+      </div>
+
+      <p id="loginError" style="color: #ef4444; font-size: 0.85rem; margin-top: 0.5rem; text-align: left; display: none;">Invalid ID or Password</p>
+
+      <button id="loginBtn" class="btn btn-primary" style="width: 100%; justify-content: center; margin-top: 1rem;">
+        Login
+      </button>
     </section>
   </main>
+  
+  <script>
+    const roleSelect = document.getElementById('roleSelect');
+    const userIdInput = document.getElementById('userIdInput');
+    const passwordInput = document.getElementById('passwordInput');
+    const loginError = document.getElementById('loginError');
+    const loginBtn = document.getElementById('loginBtn');
+
+    loginBtn.addEventListener('click', async () => {
+        const role = roleSelect.value;
+        const userId = userIdInput.value.trim();
+        const password = passwordInput.value.trim();
+        
+        loginError.style.display = 'none';
+
+        if (!userId || !password) {
+            loginError.innerText = "Please fill completely.";
+            loginError.style.display = 'block';
+            return;
+        }
+
+        try {
+            const endpoint = role === 'student' ? '/api/students' : '/api/faculty';
+            loginBtn.innerText = 'Verifying...';
+            const req = await fetch('http://localhost:5000' + endpoint);
+            const data = await req.json();
+            
+            // Validate the ID against the DB table dynamically
+            const idField = role === 'student' ? 'student_id' : 'faculty_id';
+            const user = data.find(u => String(u[idField]) === userId);
+
+            if (user) {
+                // In a real system, you'd securely hash and verify against the DB.
+                // For this demo context, any non-empty password passes when ID matches.
+                localStorage.setItem('user_role', role);
+                localStorage.setItem('user_id', userId);
+                localStorage.setItem('user_name', user.name);
+                window.location.href = 'dashboard.html';
+            } else {
+                loginError.innerText = "Invalid ID for selected role";
+                loginError.style.display = 'block';
+            }
+        } catch(e) {
+            loginError.innerText = "Database connection failed";
+            loginError.style.display = 'block';
+        } finally {
+            loginBtn.innerText = 'Login';
+        }
+    });
+  </script>
 </body>
 </html>

@@ -145,18 +145,40 @@ async function refreshDefaulterStatus(connection, studentId) {
     await connection.query('DELETE FROM D_BAR WHERE student_id = ?', [studentId]);
 }
 
-router.get('/dashboard', asyncWrap(async (_req, res) => {
-    const [studentsRows] = await pool.query('SELECT COUNT(*) AS count FROM Students');
-    const [subjectsRows] = await pool.query('SELECT COUNT(*) AS count FROM Subjects');
-    const [attendanceRows] = await pool.query('SELECT AVG(percentage) AS avg_att FROM Attendance_Summary');
-    const [defaultersRows] = await pool.query('SELECT COUNT(*) AS count FROM D_BAR');
+router.get('/dashboard', asyncWrap(async (req, res) => {
+    const role = req.query.role;
+    const userId = Number(req.query.user_id);
 
-    res.json({
-        students: Number(studentsRows[0].count || 0),
-        subjects: Number(subjectsRows[0].count || 0),
-        attendance: Number(attendanceRows[0].avg_att || 0),
-        defaulters: Number(defaultersRows[0].count || 0)
-    });
+    if (role === 'student') {
+        const [subRows] = await pool.query('SELECT COUNT(*) AS count FROM Student_Enrollment WHERE student_id = ?', [userId]);
+        const [attRows] = await pool.query(`
+            SELECT AVG(percentage) as avg_att FROM Attendance_Summary asu 
+            JOIN Student_Enrollment se ON asu.enroll_id = se.enroll_id 
+            WHERE se.student_id = ?
+        `, [userId]);
+        
+        res.json({
+            subjects: Number(subRows[0].count || 0),
+            attendance: Number(attRows[0].avg_att || 0)
+        });
+    } else if (role === 'faculty') {
+        const [stuRows] = await pool.query(`
+            SELECT COUNT(DISTINCT se.student_id) AS count 
+            FROM Student_Enrollment se
+            JOIN Subjects sub ON se.subject_id = sub.subject_id
+            WHERE sub.faculty_id = ?
+        `, [userId]);
+        const [subRows] = await pool.query('SELECT COUNT(*) AS count FROM Subjects WHERE faculty_id = ?', [userId]);
+        const [classesRows] = await pool.query('SELECT COUNT(*) AS count FROM Classes c JOIN Subjects s ON c.subject_id=s.subject_id WHERE s.faculty_id = ?', [userId]);
+        
+        res.json({
+            students: Number(stuRows[0].count || 0),
+            subjects: Number(subRows[0].count || 0),
+            classes: Number(classesRows[0].count || 0)
+        });
+    } else {
+        res.json({});
+    }
 }));
 
 router.get('/departments', asyncWrap(async (_req, res) => {
@@ -164,20 +186,45 @@ router.get('/departments', asyncWrap(async (_req, res) => {
     res.json(rows);
 }));
 
-router.get('/students', asyncWrap(async (_req, res) => {
-    const [rows] = await pool.query(
-        `
+router.get('/students', asyncWrap(async (req, res) => {
+    const role = req.query.role;
+    const userId = Number(req.query.user_id);
+
+    if (role === 'faculty') {
+        const query = `
+            SELECT s.student_id, s.name, s.year, s.section, s.department_id, s.mentor_id, d.department_name, 
+                   GROUP_CONCAT(sub.subject_name SEPARATOR ', ') AS subjects_taught
+            FROM Students s
+            LEFT JOIN Departments d ON s.department_id = d.department_id
+            JOIN Student_Enrollment se ON s.student_id = se.student_id
+            JOIN Subjects sub ON se.subject_id = sub.subject_id
+            WHERE sub.faculty_id = ?
+            GROUP BY s.student_id
+            ORDER BY s.student_id
+        `;
+        const [rows] = await pool.query(query, [userId]);
+        return res.json(rows);
+    }
+
+    let query = `
         SELECT s.student_id, s.name, s.year, s.section, s.department_id, s.mentor_id, d.department_name
         FROM Students s
         LEFT JOIN Departments d ON s.department_id = d.department_id
-        ORDER BY s.student_id
-        `
-    );
+    `;
+    let params = [];
+
+    if (role === 'student') {
+        query += ` WHERE s.student_id = ?`;
+        params.push(userId);
+    }
+
+    query += ` ORDER BY s.student_id`;
+    const [rows] = await pool.query(query, params);
     res.json(rows);
 }));
 
 router.post('/students', asyncWrap(async (req, res) => {
-    const { name, year, section, department_id, mentor_id } = req.body;
+    const { name, year, section, department_id, mentor_id, subject_ids } = req.body;
     if (!name || !year || !section || !department_id) {
         return res.status(400).json({ error: 'name, year, section and department_id are required.' });
     }
@@ -198,6 +245,20 @@ router.post('/students', asyncWrap(async (req, res) => {
             `,
             [studentId, String(name).trim(), yearValue, String(section).trim(), departmentId, mentorId]
         );
+
+        if (Array.isArray(subject_ids) && subject_ids.length > 0) {
+            for (const subjectIdStr of subject_ids) {
+                const subjectId = toInt(subjectIdStr, 'subject_id');
+                const enrollId = await getNextId(connection, 'Student_Enrollment', 'enroll_id');
+                await connection.query(
+                    `
+                    INSERT INTO Student_Enrollment (enroll_id, student_id, subject_id, year_id)
+                    VALUES (?, ?, ?, ?)
+                    `,
+                    [enrollId, studentId, subjectId, 2]
+                );
+            }
+        }
 
         await connection.commit();
         res.status(201).json({ success: true, student_id: studentId, mentor_id: mentorId });
@@ -243,39 +304,90 @@ router.delete('/students/:id', asyncWrap(async (req, res) => {
     }
 }));
 
-router.get('/faculty', asyncWrap(async (_req, res) => {
-    const [rows] = await pool.query(
-        `
+router.get('/faculty', asyncWrap(async (req, res) => {
+    const role = req.query.role;
+    const userId = Number(req.query.user_id);
+
+    let query = `
         SELECT f.faculty_id, f.name, f.department_id, d.department_name
         FROM Faculty f
         LEFT JOIN Departments d ON f.department_id = d.department_id
-        ORDER BY f.faculty_id
-        `
-    );
+    `;
+    let params = [];
+
+    if (role === 'faculty') {
+        query += ` WHERE f.faculty_id = ?`;
+        params.push(userId);
+    } else if (role === 'student') {
+        query += `
+            WHERE f.faculty_id IN (
+                SELECT sub.faculty_id FROM Subjects sub
+                JOIN Student_Enrollment se ON sub.subject_id = se.subject_id
+                WHERE se.student_id = ?
+            )
+        `;
+        params.push(userId);
+    }
+
+    query += ` ORDER BY f.faculty_id`;
+    const [rows] = await pool.query(query, params);
     res.json(rows);
 }));
 
-router.get('/subjects', asyncWrap(async (_req, res) => {
-    const [rows] = await pool.query(
-        `
-        SELECT s.subject_id, s.subject_name, s.department_id, s.faculty_id, f.name AS faculty_name
+router.get('/subjects', asyncWrap(async (req, res) => {
+    const role = req.query.role;
+    const userId = Number(req.query.user_id);
+
+    let query = `
+        SELECT s.subject_id, s.subject_name, s.department_id, d.department_name, s.faculty_id, f.name AS faculty_name
         FROM Subjects s
         LEFT JOIN Faculty f ON s.faculty_id = f.faculty_id
-        ORDER BY s.subject_id
-        `
-    );
+        LEFT JOIN Departments d ON s.department_id = d.department_id
+    `;
+    let params = [];
+
+    if (role === 'faculty') {
+        query += ` WHERE s.faculty_id = ?`;
+        params.push(userId);
+    } else if (role === 'student') {
+        query += `
+            WHERE s.subject_id IN (
+                SELECT subject_id FROM Student_Enrollment WHERE student_id = ?
+            )
+        `;
+        params.push(userId);
+    }
+
+    query += ` ORDER BY s.subject_id`;
+    const [rows] = await pool.query(query, params);
     res.json(rows);
 }));
 
-router.get('/classes', asyncWrap(async (_req, res) => {
-    const [rows] = await pool.query(
-        `
+router.get('/classes', asyncWrap(async (req, res) => {
+    const role = req.query.role;
+    const userId = Number(req.query.user_id);
+
+    let query = `
         SELECT c.class_id, c.subject_id, s.subject_name, c.class_date, c.time_slot
         FROM Classes c
         JOIN Subjects s ON c.subject_id = s.subject_id
-        ORDER BY c.class_date DESC, c.class_id DESC
-        `
-    );
+    `;
+    let params = [];
+
+    if (role === 'faculty') {
+        query += ` WHERE s.faculty_id = ?`;
+        params.push(userId);
+    } else if (role === 'student') {
+        query += `
+            WHERE c.subject_id IN (
+                SELECT subject_id FROM Student_Enrollment WHERE student_id = ?
+            )
+        `;
+        params.push(userId);
+    }
+
+    query += ` ORDER BY c.class_date DESC, c.class_id DESC`;
+    const [rows] = await pool.query(query, params);
     res.json(rows);
 }));
 
@@ -355,29 +467,59 @@ router.post('/attendance', asyncWrap(async (req, res) => {
     }
 }));
 
-router.get('/attendance/summary', asyncWrap(async (_req, res) => {
-    const [rows] = await pool.query(
-        `
+router.get('/attendance/summary', asyncWrap(async (req, res) => {
+    const role = req.query.role;
+    const userId = Number(req.query.user_id);
+
+    let query = `
         SELECT s.name AS student_name, sub.subject_name, asu.total_classes, asu.classes_present, asu.percentage
         FROM Attendance_Summary asu
         JOIN Student_Enrollment se ON asu.enroll_id = se.enroll_id
         JOIN Students s ON se.student_id = s.student_id
         JOIN Subjects sub ON se.subject_id = sub.subject_id
-        ORDER BY s.student_id, sub.subject_id
-        `
-    );
+    `;
+    let params = [];
+
+    if (role === 'faculty') {
+        query += ` WHERE sub.faculty_id = ?`;
+        params.push(userId);
+    } else if (role === 'student') {
+        query += ` WHERE s.student_id = ?`;
+        params.push(userId);
+    }
+
+    query += ` ORDER BY s.student_id, sub.subject_id`;
+    const [rows] = await pool.query(query, params);
     res.json(rows);
 }));
 
-router.get('/defaulters', asyncWrap(async (_req, res) => {
-    const [rows] = await pool.query(
-        `
+router.get('/defaulters', asyncWrap(async (req, res) => {
+    const role = req.query.role;
+    const userId = Number(req.query.user_id);
+
+    let query = `
         SELECT s.student_id, s.name AS student_name, db.percentage, db.alert_message
         FROM D_BAR db
         JOIN Students s ON db.student_id = s.student_id
-        ORDER BY db.percentage ASC, s.student_id ASC
-        `
-    );
+    `;
+    let params = [];
+
+    if (role === 'faculty') {
+        query += `
+            WHERE s.student_id IN (
+                SELECT DISTINCT se.student_id FROM Student_Enrollment se
+                JOIN Subjects sub ON se.subject_id = sub.subject_id
+                WHERE sub.faculty_id = ?
+            )
+        `;
+        params.push(userId);
+    } else if (role === 'student') {
+        query += ` WHERE s.student_id = ?`;
+        params.push(userId);
+    }
+
+    query += ` ORDER BY db.percentage ASC, s.student_id ASC`;
+    const [rows] = await pool.query(query, params);
     res.json(rows);
 }));
 

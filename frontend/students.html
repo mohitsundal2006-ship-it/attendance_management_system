@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="style.css">
     <script src="script.js" defer></script>
 </head>
+
 <body onload="loadStudents()">
     <aside id="sidebar" class="sidebar" aria-label="Sidebar navigation"></aside>
 
@@ -27,9 +29,10 @@
                     <tr>
                         <th>ID</th>
                         <th>Name</th>
-                        <th>Year &amp; Section</th>
+                        <th>Year & Section</th>
                         <th>Department</th>
-                        <th>Actions</th>
+                        <th id="students-th-subjects" style="display:none;">Subjects</th>
+                        <th class="no-print" id="students-th-actions">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="students-body"></tbody>
@@ -41,7 +44,8 @@
         <div class="glass-panel modal">
             <div class="modal-header">
                 <h3 id="add-student-title">Add New Student</h3>
-                <button class="close-btn" type="button" aria-label="Close" onclick="closeModal('addModal')">&times;</button>
+                <button class="close-btn" type="button" aria-label="Close"
+                    onclick="closeModal('addModal')">&times;</button>
             </div>
 
             <div class="modal-body">
@@ -66,10 +70,16 @@
                         <select id="deptSelect" required></select>
                     </div>
 
+                    <div class="form-group">
+                        <label for="subjectSelect">Enroll in Subjects (Ctrl/Cmd click to select multiple)</label>
+                        <select id="subjectSelect" multiple required style="height: 100px;"></select>
+                    </div>
+
                     <button type="submit" class="btn btn-primary" style="width: 100%;">Add Student</button>
                 </form>
             </div>
         </div>
     </div>
 </body>
+
 </html>

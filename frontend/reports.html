@@ -11,15 +11,28 @@
     <aside id="sidebar" class="sidebar" aria-label="Sidebar navigation"></aside>
 
     <main class="main-content">
-        <header class="header">
+        <header class="header" style="display: flex; justify-content: space-between; align-items: center;">
             <h1 class="page-title">Attendance Summary</h1>
+            <button class="btn btn-primary no-print" onclick="window.print()">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Download PDF
+            </button>
         </header>
+
+        <style>
+            @media print {
+                body { background: white; margin: 0; padding: 0; }
+                .sidebar, .no-print { display: none !important; }
+                .main-content { margin: 0 !important; padding: 20px !important; }
+                .glass-panel { box-shadow: none; border: 1px solid #ddd; }
+            }
+        </style>
 
         <section class="glass-panel table-container animate-fade-in" aria-label="Attendance reports table">
             <table>
                 <thead>
                     <tr>
-                        <th>Student Name</th>
+                        <th id="reports-th-name">Student Name</th>
                         <th>Subject</th>
                         <th>Total Classes</th>
                         <th>Present</th>

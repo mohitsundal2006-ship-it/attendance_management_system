@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Smart Attendance</title>
     <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="script.js" defer></script>
 </head>
 <body onload="loadDashboard()">
@@ -12,32 +13,41 @@
 
     <main class="main-content">
         <header class="header">
-            <h1 class="page-title">Admin Dashboard</h1>
+            <h1 class="page-title" id="dashboard-title">Dashboard</h1>
             <div class="user-profile">
-                <span style="color: var(--text-secondary);">Welcome back, Admin</span>
-                <div class="avatar">A</div>
+                <span style="color: var(--text-secondary);">Welcome back, <span id="user-display-name"></span></span>
+                <div class="avatar" id="user-avatar-initial">U</div>
             </div>
         </header>
 
-        <section class="stats-grid animate-fade-in" aria-label="Dashboard stats">
-            <article class="glass-panel stat-card">
-                <span class="stat-title">Total Students</span>
-                <span class="stat-value" id="stat-students">-</span>
-            </article>
-            <article class="glass-panel stat-card">
-                <span class="stat-title">Total Subjects</span>
-                <span class="stat-value" id="stat-stats">-</span>
-            </article>
-            <article class="glass-panel stat-card">
-                <span class="stat-title">Avg Attendance</span>
-                <span class="stat-value" id="stat-attendance">-</span>
-            </article>
-            <article class="glass-panel stat-card">
-                <span class="stat-title">Defaulters Alert</span>
-                <span class="stat-value" id="stat-defaulters">-</span>
-            </article>
+        <section class="stats-grid animate-fade-in" aria-label="Dashboard stats" id="stats-container">
+            <!-- Dynamically populated by JS depending on role -->
         </section>
 
-        </main>
+        <!-- Attendance Graph Section -->
+        <section id="charts-wrapper" class="animate-fade-in" style="margin-bottom: 2.5rem; display: grid; gap: 2rem; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); align-items: start;">
+            <div class="glass-panel" style="padding: 2rem; border-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); background: white;">
+                <h2 style="font-size: 1.15rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-primary);" id="chart-title">Attendance Analysis</h2>
+                <div style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="attendanceChart"></canvas>
+                </div>
+            </div>
+
+            <div id="top-chart-container" class="glass-panel" style="display: none; padding: 2rem; border-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); background: white;">
+                <h2 style="font-size: 1.15rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-primary);">Top Attending Students</h2>
+                <div style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="topChart"></canvas>
+                </div>
+            </div>
+
+            <div id="defaulter-chart-container" class="glass-panel" style="display: none; padding: 2rem; border-radius: 24px; box-shadow: 0 4px 15px rgba(0,0,0,0.02); background: white;">
+                <h2 style="font-size: 1.15rem; font-weight: 600; margin-bottom: 1.5rem; color: var(--text-primary);">Defaulter Risk Students</h2>
+                <div style="position: relative; height: 300px; width: 100%;">
+                    <canvas id="defaulterChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+    </main>
 </body>
 </html>
